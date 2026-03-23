@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML to PDF PRO</title>
+
+<style>
+body { font-family: Arial; margin:0; background:#f5f5f5; }
+header { background:#9333ea; color:#fff; text-align:center; padding:15px; }
+
+.container { max-width:900px; margin:auto; padding:15px; }
+
+textarea {
+  width:100%;
+  height:180px;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  margin-bottom:10px;
+  font-family:monospace;
+}
+
+#preview {
+  background:#fff;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  min-height:200px;
+  margin-bottom:15px;
+}
+
+.controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+select, input {
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+button {
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  background:#9333ea;
+  color:#fff;
+  cursor:pointer;
+}
+
+.ad {
+  height:60px;
+  background:#ccc;
+  text-align:center;
+  line-height:60px;
+  margin:10px 0;
+  border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>HTML to PDF PRO</h1>
+<p>Advanced HTML to PDF Converter</p>
+</header>
+
+<div class="ad">Top Ad</div>
+
+<div class="container">
+
+<textarea id="htmlInput" placeholder="<h1>Hello World</h1>"></textarea>
+
+<div class="controls">
+<select id="pageSize">
+  <option value="a4">A4</option>
+  <option value="letter">Letter</option>
+</select>
+
+<input type="number" id="margin" placeholder="Margin (mm)" value="10">
+</div>
+
+<div id="preview"></div>
+
+<div class="ad">Middle Ad</div>
+
+<button onclick="generatePDF()">📄 Generate PDF</button>
+<button onclick="window.location.href='https://easyusehub.blogspot.com/?m=1'">🏠 Home</button>
+<button onclick="window.location.href='https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1'">📚 All Tools</button>
+
+</div>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+const { jsPDF } = window.jspdf;
+const input = document.getElementById("htmlInput");
+const preview = document.getElementById("preview");
+
+// Live preview
+input.addEventListener("input", () => {
+  preview.innerHTML = input.value;
+});
+
+// Generate PRO PDF
+async function generatePDF() {
+  if(!input.value) return alert("Write HTML first!");
+
+  const pageSize = document.getElementById("pageSize").value;
+  const margin = parseInt(document.getElementById("margin").value) || 10;
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: pageSize
+  });
+
+  const canvas = await html2canvas(preview, { scale: 2 });
+  const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  const imgWidth = pageWidth - margin * 2;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  let heightLeft = imgHeight;
+  let position = margin;
+
+  pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+  heightLeft -= (pageHeight - margin * 2);
+
+  // Multi-page support
+  while (heightLeft > 0) {
+    pdf.addPage();
+    position = margin - imgHeight + heightLeft;
+    pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+    heightLeft -= (pageHeight - margin * 2);
+  }
+
+  pdf.save("html-to-pdf-pro.pdf");
+}
+</script>
+
+</body>
+</html>
