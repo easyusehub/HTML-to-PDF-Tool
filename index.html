@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HTML to PDF PRO</title>
+<title>HTML to PDF </title>
 
 <style>
 body { font-family: Arial; margin:0; background:#f5f5f5; }
@@ -13,12 +13,19 @@ header { background:#9333ea; color:#fff; text-align:center; padding:15px; }
 
 textarea {
   width:100%;
-  height:180px;
+  height:150px;
   padding:10px;
   border-radius:8px;
   border:1px solid #ccc;
   margin-bottom:10px;
   font-family:monospace;
+}
+
+input, select {
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #ccc;
+  margin:5px 0;
 }
 
 #preview {
@@ -30,19 +37,6 @@ textarea {
   margin-bottom:15px;
 }
 
-.controls {
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-bottom:10px;
-}
-
-select, input {
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-
 button {
   padding:10px 20px;
   border:none;
@@ -50,6 +44,7 @@ button {
   background:#9333ea;
   color:#fff;
   cursor:pointer;
+  margin:5px;
 }
 
 .ad {
@@ -66,30 +61,40 @@ button {
 <body>
 
 <header>
-<h1>HTML to PDF PRO</h1>
-<p>Advanced HTML to PDF Converter</p>
+<h1>HTML to PDF </h1>
+<p>Convert HTML, URL, or File into PDF</p>
 </header>
 
 <div class="ad">Top Ad</div>
 
 <div class="container">
 
+<!-- HTML INPUT -->
 <textarea id="htmlInput" placeholder="<h1>Hello World</h1>"></textarea>
 
-<div class="controls">
+<!-- URL INPUT -->
+<input type="text" id="urlInput" placeholder="Enter Website URL (https://...)">
+
+<!-- FILE INPUT -->
+<input type="file" id="fileInput" accept=".html">
+
+<!-- SETTINGS -->
+<div>
 <select id="pageSize">
-  <option value="a4">A4</option>
-  <option value="letter">Letter</option>
+<option value="a4">A4</option>
+<option value="letter">Letter</option>
 </select>
 
-<input type="number" id="margin" placeholder="Margin (mm)" value="10">
+<input type="number" id="margin" value="10" placeholder="Margin (mm)">
 </div>
 
 <div id="preview"></div>
 
 <div class="ad">Middle Ad</div>
 
-<button onclick="generatePDF()">📄 Generate PDF</button>
+<button onclick="generateFromHTML()">📄 HTML → PDF</button>
+<button onclick="generateFromURL()">🌐 URL → PDF</button>
+
 <button onclick="window.location.href='https://easyusehub.blogspot.com/?m=1'">🏠 Home</button>
 <button onclick="window.location.href='https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1'">📚 All Tools</button>
 
@@ -101,18 +106,43 @@ button {
 
 <script>
 const { jsPDF } = window.jspdf;
-const input = document.getElementById("htmlInput");
 const preview = document.getElementById("preview");
 
-// Live preview
-input.addEventListener("input", () => {
-  preview.innerHTML = input.value;
+// Live preview (HTML input)
+document.getElementById("htmlInput").addEventListener("input", e => {
+  preview.innerHTML = e.target.value;
 });
 
-// Generate PRO PDF
-async function generatePDF() {
-  if(!input.value) return alert("Write HTML first!");
+// Load HTML file
+document.getElementById("fileInput").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      preview.innerHTML = ev.target.result;
+    }
+    reader.readAsText(file);
+  }
+});
 
+// HTML → PDF
+async function generateFromHTML(){
+  if(!preview.innerHTML) return alert("No content!");
+
+  createPDF(preview);
+}
+
+// URL → PDF (basic)
+async function generateFromURL(){
+  const url = document.getElementById("urlInput").value;
+  if(!url) return alert("Enter URL!");
+
+  preview.innerHTML = `<iframe src="${url}" width="100%" height="600px"></iframe>`;
+  setTimeout(()=> createPDF(preview), 2000);
+}
+
+// Core PDF function
+async function createPDF(element){
   const pageSize = document.getElementById("pageSize").value;
   const margin = parseInt(document.getElementById("margin").value) || 10;
 
@@ -122,7 +152,7 @@ async function generatePDF() {
     format: pageSize
   });
 
-  const canvas = await html2canvas(preview, { scale: 2 });
+  const canvas = await html2canvas(element, { scale: 2 });
   const imgData = canvas.toDataURL("image/jpeg", 1.0);
 
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -137,7 +167,6 @@ async function generatePDF() {
   pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
   heightLeft -= (pageHeight - margin * 2);
 
-  // Multi-page support
   while (heightLeft > 0) {
     pdf.addPage();
     position = margin - imgHeight + heightLeft;
@@ -145,7 +174,7 @@ async function generatePDF() {
     heightLeft -= (pageHeight - margin * 2);
   }
 
-  pdf.save("html-to-pdf-pro.pdf");
+  pdf.save("ultimate-pdf.pdf");
 }
 </script>
 
